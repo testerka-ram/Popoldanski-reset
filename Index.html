@@ -1,0 +1,81 @@
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Button, FlatList, Alert } from 'react-native';
+
+// Preproste predloge aktivnosti
+const activities = [
+  "Sprehod 15 min",
+  "Kratek trening 7 min",
+  "Meditacija 5 min",
+  "Branje",
+  "Pisanje dnevnika",
+  "Spremljanje hobija"
+];
+
+export default function App() {
+  const [timer, setTimer] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [completedActivities, setCompletedActivities] = useState([]);
+
+  // Timer efekt
+  useEffect(() => {
+    let interval = null;
+    if (isRunning) {
+      interval = setInterval(() => {
+        setTimer(prev => prev + 1);
+      }, 1000);
+    } else if (!isRunning && timer !== 0) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning, timer]);
+
+  const handleReset = () => {
+    setTimer(0);
+    setIsRunning(false);
+    Alert.alert("Reset!", "Si pripravljena za nov popoldan!");
+  };
+
+  const handleCompleteActivity = (activity) => {
+    setCompletedActivities([...completedActivities, activity]);
+    Alert.alert("Bravo!", `Izvedla si: ${activity}`);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Popoldanski Reset & Aktivnosti</Text>
+
+      <View style={styles.timerContainer}>
+        <Text style={styles.timerText}>Timer: {timer}s</Text>
+        <Button title={isRunning ? "Stop" : "Start"} onPress={() => setIsRunning(!isRunning)} />
+        <Button title="Reset" onPress={handleReset} color="#FF6347" />
+      </View>
+
+      <Text style={styles.subtitle}>Predlog aktivnosti:</Text>
+      <FlatList
+        data={activities}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.activityItem}>
+            <Text>{item}</Text>
+            <Button title="✔" onPress={() => handleCompleteActivity(item)} />
+          </View>
+        )}
+      />
+
+      <Text style={styles.subtitle}>Izvedene aktivnosti:</Text>
+      {completedActivities.map((act, idx) => (
+        <Text key={idx} style={styles.completed}>{act}</Text>
+      ))}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, marginTop: 40 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+  timerContainer: { marginBottom: 30, alignItems: 'center' },
+  timerText: { fontSize: 18, marginBottom: 10 },
+  subtitle: { fontSize: 18, fontWeight: 'bold', marginTop: 20 },
+  activityItem: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 5 },
+  completed: { fontStyle: 'italic', color: 'green', marginLeft: 10 }
+});
